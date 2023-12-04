@@ -1,0 +1,5 @@
+__*
+*.yaml
+k8s/.tests
+std/.test.sh
+.gitla
