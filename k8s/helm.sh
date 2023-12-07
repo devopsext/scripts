@@ -475,9 +475,9 @@ function k8sHelmDeploy() {
   local useKustomize=${K8S_HELM_KUSTOMIZE_USAGE}
 
   if [[ "useKustomize" != "true" ]]; then
-  __k8sHelmDeploy "$helmDir" "$valuesFile" "--dry-run"
+  __k8sHelmDeploy "$helmDir" "$valuesFile"
   else
-  __k8sHelmKustomizeDeploy "$helmDir" "$valuesFile" "--dry-run"
+  __k8sHelmKustomizeDeploy "$helmDir" "$valuesFile"
   fi
 }
 
