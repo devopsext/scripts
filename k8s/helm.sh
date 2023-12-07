@@ -299,7 +299,7 @@ function __k8sHelmUpgrade() {
   local releaseName="$K8S_HELM_RELEASE_NAME"
   local namespace="$K8S_HELM_NAMESPACE"
   local flags="$K8S_HELM_UPGRADE_FLAGS"
-  local timeout="$K8S_HELM_UPGRADE_TIMEOUT" 
+  local timeout="$K8S_HELM_UPGRADE_TIMEOUT"
   local helmChartYaml="$helmDir/$K8S_HELM_CHART_YAML"
 
   if [ ! -f "$helmChartYaml" ]; then
@@ -322,6 +322,46 @@ function __k8sHelmUpgrade() {
     stdLogInfo "Upgrading $releaseName $dryRun..."
     __k8sHelmTreeTrace "$helmDir/"
     helm upgrade "$releaseName" "$helmDir/" -i --atomic --reset-values $dryRun $namespace $timeout $flags || return 1
+  fi
+}
+
+function __k8sHelmUpgradeWithValues() {
+
+  if [ ! k8sHelmExists ]; then
+    stdLogErr "Helm is not found."
+    return 1
+  fi
+
+  local helmDir="$1"
+  local valuesFile="$2"
+  local dryRun="$3"
+
+  local releaseName="$K8S_HELM_RELEASE_NAME"
+  local namespace="$K8S_HELM_NAMESPACE"
+  local flags="$K8S_HELM_UPGRADE_FLAGS"
+  local timeout="$K8S_HELM_UPGRADE_TIMEOUT"
+  local helmChartYaml="$helmDir/$K8S_HELM_CHART_YAML"
+
+  if [ ! -f "$helmChartYaml" ]; then
+    stdLogErr "Not found $helmChartYaml"
+    return 1
+  fi
+
+  if [[ "$namespace" != "" ]]; then
+    namespace="--namespace $namespace"
+  fi
+
+  if [[ "$timeout" != "" ]]; then
+    timeout="--timeout $timeout"
+  fi
+
+  if k8sHelm2Exists; then
+    stdLogErr "Helm 2 is not supported anymore."
+    return 1
+  elif k8sHelm3Exists; then
+    stdLogInfo "Upgrading $releaseName with values file $valuesFile $dryRun..."
+    __k8sHelmTreeTrace "$helmDir/"
+    helm upgrade "$releaseName" -f "$valuesFile" "$helmDir/" -i --atomic --reset-values $dryRun $namespace $timeout $flags || return 1
   fi
 }
 
@@ -447,7 +487,11 @@ function __k8sHelmDeploy() {
     stdLogInfo "Copying '$loadKubeConfig' to '$stateDir/'..." && cp -f "$loadKubeConfig" "$stateDir/"
   fi
 
-  __k8sHelmUpgrade "$helmDir" "$valuesFile" "$dryRun" || return 1
+  if [[ "$valuesFile" != "" ]]; then
+    __k8sHelmUpgradeWithValues "$helmDir" "$valuesFile" "$dryRun" || return 1
+  else
+    __k8sHelmUpgrade "$helmTempDir" "$dryRun" || return 1
+  fi
 
   if [ -d "$stateDir" ]; then
     k8sStateSave "$stateDir" || return 1
