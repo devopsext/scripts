@@ -447,7 +447,7 @@ function __k8sHelmDeploy() {
     stdLogInfo "Copying '$loadKubeConfig' to '$stateDir/'..." && cp -f "$loadKubeConfig" "$stateDir/"
   fi
 
-  __k8sHelmUpgrade "$helmDir" "$dryRun" "$valuesFile" || return 1
+  __k8sHelmUpgrade "$helmDir" "$valuesFile" "$dryRun" || return 1
 
   if [ -d "$stateDir" ]; then
     k8sStateSave "$stateDir" || return 1
