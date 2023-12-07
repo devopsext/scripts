@@ -24,6 +24,7 @@ K8S_HELM_KUSTOMZIER_BUILD_FLAGS=${K8S_HELM_KUSTOMZIER_BUILD_FLAGS:=""}
 K8S_HELM_YAML=${K8S_HELM_YAML:="$GITLAB_JOB_NAME.yaml"}
 K8S_HELM_CHART_YAML=${K8S_HELM_CHART_YAML:="Chart.yaml"}
 
+K8S_HELM_KUSTOMIZE_USAGE=${K8S_HELM_KUSTOMIZE_USAGE:="true"}
 K8S_HELM_KUSTOMIZE_IMAGE=${K8S_HELM_KUSTOMIZE_IMAGE:=""}
 K8S_HELM_KUSTOMIZE_LABEL=${K8S_HELM_KUSTOMIZE_LABEL:=""}
 K8S_HELM_KUSTOMIZE_ANNOTATION=${K8S_HELM_KUSTOMIZE_ANNOTATION:=""}
@@ -342,7 +343,7 @@ function __k8sHelmUpgrade() {
 # that is stored in helm chart templates folder (helmCustomizeFile="$helmTemplatesDir/$helmFile")
 # 3. Finally we deploy (via `helm upgrade`) the helm chart with $helmCustomizeFile
 
-function __k8sHelmDeploy() {
+function __k8sHelmKustomizeDeploy() {
 
   local helmDir="$1"
   local valuesFile="$2"
@@ -425,20 +426,59 @@ function __k8sHelmDeploy() {
   stdLogInfo "Done"
 }
 
+# Pure Helm deploy without kustomize
+function __k8sHelmDeploy() {
+
+  local helmDir="$1"
+  local valuesFile="$2"
+  local dryRun="$3"
+
+  local stateDir="$K8S_HELM_STATE_DIR"
+  local loadDir="$K8S_HELM_LOAD_DIR"
+  local kubeConfig="$K8S_HELM_KUBE_CONFIG"
+
+  k8sStateLoad "$loadDir" || return 1
+
+  local loadKubeConfig="$loadDir/$kubeConfig"
+  if [ -f "$loadKubeConfig" ]; then
+    if [ ! -d "$stateDir" ]; then
+      mkdir -p "$stateDir"
+    fi
+    stdLogInfo "Copying '$loadKubeConfig' to '$stateDir/'..." && cp -f "$loadKubeConfig" "$stateDir/"
+  fi
+
+  __k8sHelmUpgrade "$helmDir" "$dryRun" || return 1
+
+  if [ -d "$stateDir" ]; then
+    k8sStateSave "$stateDir" || return 1
+  fi
+  stdLogInfo "Done"
+}
+
 function k8sHelmDryRun() {
 
   local helmDir=${K8S_HELM_DIR:="$1"}
   local valuesFile=${K8S_HELM_VALUES_FILE:="$2"}
+  local useKustomize=${K8S_HELM_KUSTOMIZE_USAGE}
 
+  if [[ "useKustomize" != "true" ]]; then
   __k8sHelmDeploy "$helmDir" "$valuesFile" "--dry-run"
+  else
+  __k8sHelmKustomizeDeploy "$helmDir" "$valuesFile" "--dry-run"
+  fi
 }
 
 function k8sHelmDeploy() {
 
   local helmDir=${K8S_HELM_DIR:="$1"}
   local valuesFile=${K8S_HELM_VALUES_FILE:="$2"}
+  local useKustomize=${K8S_HELM_KUSTOMIZE_USAGE}
 
-  __k8sHelmDeploy "$helmDir" "$valuesFile"
+  if [[ "useKustomize" != "true" ]]; then
+  __k8sHelmDeploy "$helmDir" "$valuesFile" "--dry-run"
+  else
+  __k8sHelmKustomizeDeploy "$helmDir" "$valuesFile" "--dry-run"
+  fi
 }
 
 function k8sHelmRollback() {
