@@ -503,9 +503,9 @@ function k8sHelmDryRun() {
 
   local helmDir=${K8S_HELM_DIR:="$1"}
   local valuesFile=${K8S_HELM_VALUES_FILE:="$2"}
-  local useKustomize=${K8S_HELM_KUSTOMIZE_USAGE}
+  local useKustomize="$K8S_HELM_KUSTOMIZE_USAGE"
 
-  if [[ "useKustomize" != "true" ]]; then
+  if [[ "$useKustomize" != "true" ]]; then
   __k8sHelmDeploy "$helmDir" "$valuesFile" "--dry-run"
   else
   __k8sHelmKustomizeDeploy "$helmDir" "$valuesFile" "--dry-run"
@@ -516,9 +516,9 @@ function k8sHelmDeploy() {
 
   local helmDir=${K8S_HELM_DIR:="$1"}
   local valuesFile=${K8S_HELM_VALUES_FILE:="$2"}
-  local useKustomize=${K8S_HELM_KUSTOMIZE_USAGE}
+  local useKustomize="$K8S_HELM_KUSTOMIZE_USAGE"
 
-  if [[ "useKustomize" != "true" ]]; then
+  if [[ "$useKustomize" != "true" ]]; then
   __k8sHelmDeploy "$helmDir" "$valuesFile"
   else
   __k8sHelmKustomizeDeploy "$helmDir" "$valuesFile"
