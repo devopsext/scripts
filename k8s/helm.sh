@@ -94,6 +94,18 @@ function __k8sHelmTreeTrace() {
   fi
 }
 
+function __k8sHelmEnvsubst() {
+  local envFile="$1"
+
+  local pattern="$K8S_HELM_VARIABLES_PATTERN"
+
+  export variables=$(printenv | awk -F '=' '{printf "$%s\n", $1}' | grep -E "$pattern" | xargs)
+
+  mv "$envFile" "$envFile.template"
+  envsubst "$envFile" <"$envFile.template" >"$envFile" || return 1
+  rm -f "$envFile.template"
+}
+
 function __k8sHelmRenderByValues() {
 
   if [ ! k8sHelmExists ]; then
@@ -105,18 +117,13 @@ function __k8sHelmRenderByValues() {
   local valuesFile="$2"
   local outputFile="$3"
 
-  local pattern="$K8S_HELM_VARIABLES_PATTERN"
   local releaseName="$K8S_HELM_RELEASE_NAME"
   local namespace="$K8S_HELM_NAMESPACE"
   local flags="$K8S_HELM_TEMPLATE_FLAGS"
 
   stdLogInfo "Using values => $valuesFile ..."
 
-  export variables=$(printenv | awk -F '=' '{printf "$%s\n", $1}' | grep -E "$pattern" | xargs)
-  
-  mv "$valuesFile" "$valuesFile.template"
-  envsubst "$variables" <"$valuesFile.template" >"$valuesFile" || return 1
-  rm -f "$valuesFile.template"
+  __k8sHelmEnvsubst "$valuesFile"
 
   local valuesContent=$(cat "$valuesFile")
   stdDebugSmallSeparator
@@ -196,7 +203,6 @@ function __k8sHelmCustomize() {
   local inputFile="$3"
   local outputFile="$4"
 
-  local pattern="$K8S_HELM_VARIABLES_PATTERN"
   local namespace="$K8S_HELM_NAMESPACE"
   local image="$K8S_HELM_KUSTOMIZE_IMAGE"
   local label="$K8S_HELM_KUSTOMIZE_LABEL"
@@ -218,11 +224,7 @@ function __k8sHelmCustomize() {
 
   local pwdOld="$PWD"
 
-  export variables=$(printenv | awk -F '=' '{printf "$%s\n", $1}' | grep -E "$pattern" | xargs)
-
-  mv "$kustomizerFile" "$kustomizerFile.template"
-  envsubst "$variables" <"$kustomizerFile.template" >"$kustomizerFile" || return 1
-  rm -f "$kustomizerFile.template"
+  __k8sHelmEnvsubst "$kustomizerFile"
 
   stdLogInfo "Going to $kustomizerDir/..." && cd "$kustomizerDir/"
 
@@ -488,6 +490,7 @@ function __k8sHelmDeploy() {
   fi
 
   if [[ "$valuesFile" != "" ]]; then
+    __k8sHelmEnvsubst "$valuesFile"
     __k8sHelmUpgradeWithValues "$helmDir" "$valuesFile" "$dryRun" || return 1
   else
     __k8sHelmUpgrade "$helmTempDir" "$dryRun" || return 1
