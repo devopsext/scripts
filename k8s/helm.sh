@@ -102,7 +102,7 @@ function __k8sHelmEnvsubst() {
   export variables=$(printenv | awk -F '=' '{printf "$%s\n", $1}' | grep -E "$pattern" | xargs)
 
   mv "$envFile" "$envFile.template"
-  envsubst "$envFile" <"$envFile.template" >"$envFile" || return 1
+  envsubst "$variables" <"$envFile.template" >"$envFile" || return 1
   rm -f "$envFile.template"
 }
 
