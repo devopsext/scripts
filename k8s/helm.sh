@@ -342,9 +342,15 @@ function __k8sHelmUpgradeWithValues() {
   local namespace="$K8S_HELM_NAMESPACE"
   local flags="$K8S_HELM_UPGRADE_FLAGS"
   local timeout="$K8S_HELM_UPGRADE_TIMEOUT"
-  local helmChartYaml="$helmDir/$K8S_HELM_CHART_YAML"
 
-  if [ ! -f "$helmChartYaml" ]; then
+  if [[ "$helmDir" == oci://* ]]; then
+    helmChart="$helmDir"
+  else
+    helmChartYaml="$helmDir/$K8S_HELM_CHART_YAML"
+    helmChart="$helmDir/"
+  fi
+
+  if [[ "$helmChartYaml" != "" ]] && [ ! -f "$helmChartYaml" ]; then
     stdLogErr "Not found $helmChartYaml"
     return 1
   fi
@@ -362,8 +368,7 @@ function __k8sHelmUpgradeWithValues() {
     return 1
   elif k8sHelm3Exists; then
     stdLogInfo "Upgrading $releaseName with values file $valuesFile $dryRun..."
-    __k8sHelmTreeTrace "$helmDir/"
-    helm upgrade "$releaseName" -f "$valuesFile" "$helmDir/" -i --atomic --reset-values $dryRun $namespace $timeout $flags || return 1
+    helm upgrade "$releaseName" -f "$valuesFile" "$helmChart" -i --atomic --reset-values $dryRun $namespace $timeout $flags || return 1
   fi
 }
 
