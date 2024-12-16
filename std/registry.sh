@@ -297,8 +297,10 @@ function stdRegistryRenderTargetImage() {
   stdRegistryParseImage "$sourceImage" "imageRegistry" "imagePath" "imageName" "imageTag"
 
   if [[ "$targetImagePathOverride" != "" ]]; then
-    stdLogDebug "Target image path '$imagePath' overriden to '$targetImagePathOverride'"
-    imagePath="$targetImagePathOverride"
+
+    imagePathOverriden="${targetImagePathOverride/\%s/$imagePath}"
+    stdLogDebug "Target image path '$imagePath' overriden to '$imagePathOverriden'"
+    imagePath="$imagePathOverriden"
   fi
 
   if [[ "$targetImageNameOverride" != "" ]]; then
