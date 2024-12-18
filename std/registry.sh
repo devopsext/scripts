@@ -16,6 +16,8 @@ STD_REGISTRY_TARGET_PASSWORD=${STD_REGISTRY_TARGET_PASSWORD:=""}
 STD_REGISTRY_TARGET_PATH=${STD_REGISTRY_TARGET_PATH:=""}
 STD_REGISTRY_TARGET_NAME=${STD_REGISTRY_TARGET_NAME:=""}
 
+STD_REGISTRY_TARGET_CHECK_EXISTENCE=${STD_REGISTRY_TARGET_CHECK_EXISTENCE:="false"}
+
 . $SCRIPTS_DIR/std/utils.sh
 . $SCRIPTS_DIR/aws/registry.sh
 . $SCRIPTS_DIR/gcp/registry.sh
@@ -141,6 +143,7 @@ function stdRegistryPushImage() {
 
   targetImageRegistryLogin=${targetImageRegistryLogin:="$STD_REGISTRY_TARGET_LOGIN"}
   targetImageRegistryPassword=${targetImageRegistryPassword:="$STD_REGISTRY_TARGET_PASSWORD"}
+  targetImageRegistryCheckExistence=${targetImageRegistryPassword:="$STD_REGISTRY_TARGET_CHECK_EXISTENCE"}
 
   stdRegistryParseImage "$sourceImage" "sourceImageRegistry" "sourceImagePath" "sourceImageName" "sourceImageTag"
 
@@ -192,9 +195,21 @@ function stdRegistryPushImage() {
   fi
 
   #Pull source image locally
-  stdLogDebug "Pulling image '$sourceImage'..."
+  stdLogDebug "Pulling source image '$sourceImage'..."
   stdExec "docker pull '$sourceImage'" || return 1
-  stdLogDebug "Image '$sourceImage' pulled..."
+  stdLogDebug "Source image '$sourceImage' pulled..."
+
+  if [[ "$STD_REGISTRY_TARGET_CHECK_EXISTENCE" == "true" ]]; then
+
+    stdLogInfo "Checking existence of target image '$targetImage'..."
+
+    imageFailed=$(docker pull $targetImage &>/dev/null && echo $?)
+    if [[ "$imageFailed" == "0" ]]; then
+
+      stdLogInfo "Target Image '$targetImage' is found. Skipping..."
+      return 0
+    fi
+  fi
 
   stdLogDebug "The source image '$sourceImage'\nwill be pushed as target image '$targetImage'"
 
