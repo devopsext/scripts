@@ -203,7 +203,7 @@ function stdRegistryPushImage() {
 
     stdLogInfo "Checking existence of target image '$targetImage'..."
 
-    imageFailed=$(docker pull $targetImage &>/dev/null && echo $?)
+    imageFailed=$(docker pull $targetImage &>/dev/null ; echo $?)
     if [[ "$imageFailed" == "0" ]]; then
 
       stdLogInfo "Target Image '$targetImage' is found. Skipping..."
