@@ -143,7 +143,7 @@ function stdRegistryPushImage() {
 
   targetImageRegistryLogin=${targetImageRegistryLogin:="$STD_REGISTRY_TARGET_LOGIN"}
   targetImageRegistryPassword=${targetImageRegistryPassword:="$STD_REGISTRY_TARGET_PASSWORD"}
-  targetImageRegistryCheckExistence=${targetImageRegistryPassword:="$STD_REGISTRY_TARGET_CHECK_EXISTENCE"}
+  targetImageRegistryCheckExistence=${targetImageRegistryCheckExistence:="$STD_REGISTRY_TARGET_CHECK_EXISTENCE"}
 
   stdRegistryParseImage "$sourceImage" "sourceImageRegistry" "sourceImagePath" "sourceImageName" "sourceImageTag"
 
@@ -159,6 +159,8 @@ function stdRegistryPushImage() {
 
   #Autheticating in source registry
   stdRegistryDockerLogin "$sourceImageRegistry" "$STD_REGISTRY_SOURCE_LOGIN" "$STD_REGISTRY_SOURCE_PASSWORD" "SOURCE"
+
+  echo "$targetImageRegistryLogin => $targetImageRegistryPassword"
 
   #Prepare target registry and authenticate against it!
   if [[ "$targetImageRegistryLogin" == "" && "$targetImageRegistryPassword" == "" ]]; then #Using cloud platform specific auth.
