@@ -37,13 +37,6 @@ K8S_HELM_ENVTPL_DIR=${K8S_HELM_ENVTPL_DIR:=""}
 . $SCRIPTS_DIR/std/utils.sh
 . $SCRIPTS_DIR/k8s/state.sh
 
-
-if [ -d "$K8S_HELM_KUSTOMIZER_DIR" ]; then
-  stdLogInfo "Original Kustomizer dir $K8S_HELM_KUSTOMIZER_DIR is NOT found. Trying to use default directory for Kustomize - $K8S_HELM_KUSTOMIZER_DIR_DEFAULT"
-  K8S_HELM_KUSTOMIZER_DIR=$K8S_HELM_KUSTOMIZER_DIR_DEFAULT
-  K8S_HELM_ENVTPL_DIR=$K8S_HELM_KUSTOMIZER_DIR_DEFAULT
-fi
-
 function k8sHelmVersion() {
 
   if [[ -n $(which helm) ]]; then
@@ -414,6 +407,12 @@ function __k8sHelmKustomizeDeploy() {
   local helmChartYaml="$helmDir/$K8S_HELM_CHART_YAML"
   local tempDir="$K8S_HELM_TEMP_DIR"
   local envtplDir="$K8S_HELM_ENVTPL_DIR"
+
+  if [ ! -d "$kustomizerDir" ]; then
+    stdLogInfo "Original Kustomizer dir $K8S_HELM_KUSTOMIZER_DIR is NOT found. Trying to use default directory for Kustomize - $K8S_HELM_KUSTOMIZER_DIR_DEFAULT"
+    kustomizerDir=$K8S_HELM_KUSTOMIZER_DIR_DEFAULT
+    envtplDir=$K8S_HELM_KUSTOMIZER_DIR_DEFAULT
+  fi
 
   k8sStateLoad "$loadDir" || return 1
 

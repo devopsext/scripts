@@ -45,7 +45,7 @@ K8S_KUBECTL_KUSTOMIZE_NAMEPREFIX=${K8S_KUBECTL_KUSTOMIZE_NAMEPREFIX:=""}
 . $SCRIPTS_DIR/k8s/helm.sh
 
 # Fallback to default folder in case kustomization entry is missing/not set
-if [ -d "$K8S_KUBECTL_KUSTOMIZER_DIR" ]; then
+if [ ! -d "$K8S_KUBECTL_KUSTOMIZER_DIR" ]; then
   stdLogInfo "Original kubectl Kustomizer dir $K8S_KUBECTL_KUSTOMIZER_DIR is NOT found. Trying to use default directory for Kubectl - $K8S_KUBECTL_KUSTOMIZER_DIR_DEFAULT"
   K8S_KUBECTL_KUSTOMIZER_DIR=$K8S_KUBECTL_KUSTOMIZER_DIR_DEFAULT
 fi
