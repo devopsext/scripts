@@ -33,12 +33,17 @@ K8S_HELM_KUSTOMIZE_NAMESUFFIX=${K8S_HELM_KUSTOMIZE_NAMESUFFIX:=""}
 K8S_HELM_KUSTOMIZE_NAMEPREFIX=${K8S_HELM_KUSTOMIZE_NAMEPREFIX:=""}
 
 K8S_HELM_ENVTPL_DIR=${K8S_HELM_ENVTPL_DIR:=""}
+K8S_HELM_ENVTPL_DIR_DEFAULT=${K8S_HELM_ENVTPL_DIR_DEFAULT:=""}
 
-# Fallback to default folder in case kustomization entry is missing/not set
+# Fallback to default folder in case folder entry is missing/not set
 if [ ! -d "$K8S_HELM_KUSTOMIZER_DIR" ]; then
   stdLogInfo "Original Kustomizer dir $K8S_HELM_KUSTOMIZER_DIR is NOT found. Trying to use default directory for Kustomize - $K8S_HELM_KUSTOMIZER_DIR_DEFAULT"
   K8S_HELM_KUSTOMIZER_DIR=$K8S_HELM_KUSTOMIZER_DIR_DEFAULT
-  K8S_HELM_ENVTPL_DIR=$K8S_HELM_KUSTOMIZER_ROOT
+fi
+
+if [ ! -d "$K8S_HELM_ENVTPL_DIR" ]; then
+  stdLogInfo "Original envtpl dir $K8S_HELM_ENVTPL_DIR is NOT found. Trying to use default directory for envtpl - $K8S_HELM_ENVTPL_DIR_DEFAULT"
+  K8S_HELM_ENVTPL_DIR=$K8S_HELM_ENVTPL_DIR_DEFAULT
 fi
 
 . $SCRIPTS_DIR/std/utils.sh
