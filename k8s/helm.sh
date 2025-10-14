@@ -473,7 +473,7 @@ function __k8sHelmKustomizeDeploy() {
   fi
 
   if [ ! -s "$helmCustomizeFile" ]; then
-    stdLogError "Detected that final helm file has zero size, making it an empty release. Aborting."
+    stdLogErr "Detected that final helm file has zero size, making it an empty release. Aborting."
     return 1
   fi
 
