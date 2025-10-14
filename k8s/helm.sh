@@ -408,6 +408,8 @@ function __k8sHelmKustomizeDeploy() {
   local tempDir="$K8S_HELM_TEMP_DIR"
   local envtplDir="$K8S_HELM_ENVTPL_DIR"
 
+  stdLogInfo "Kustomizer dir $K8S_HELM_KUSTOMIZER_DIR, default dir - $K8S_HELM_KUSTOMIZER_DIR_DEFAULT"
+
   if [ ! -d "$kustomizerDir" ]; then
     stdLogInfo "Original Kustomizer dir $K8S_HELM_KUSTOMIZER_DIR is NOT found. Trying to use default directory for Kustomize - $K8S_HELM_KUSTOMIZER_DIR_DEFAULT"
     kustomizerDir=$K8S_HELM_KUSTOMIZER_DIR_DEFAULT
