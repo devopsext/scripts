@@ -454,7 +454,6 @@ function __k8sHelmKustomizeDeploy() {
   else
     stdLogInfo "Kustomizer dir is not found. Emulating it in purpose of image retag..."
     mkdir -p "$kustomizerOutputDir" && touch "$kustomizerOutputDir/$kustomizerFile"
-    return 1
   fi
 
   #Step 1
