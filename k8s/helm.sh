@@ -17,6 +17,7 @@ K8S_HELM_NAMESPACE=${K8S_HELM_NAMESPACE:=""}
 K8S_HELM_VALUES_FILE=${K8S_HELM_VALUES_FILE:="$GITLAB_JOB_NAME"}
 
 K8S_HELM_KUSTOMIZER_DIR=${K8S_HELM_KUSTOMIZER_DIR:="kustomizer"}
+K8S_HELM_KUSTOMIZER_DIR_DEFAULT=${K8S_HELM_KUSTOMIZER_DIR_DEFAULT:=""}
 K8S_HELM_KUSTOMIZER_ROOT=${K8S_HELM_KUSTOMIZER_ROOT:=""}
 K8S_HELM_KUSTOMIZER_FILE=${K8S_HELM_KUSTOMIZER_FILE:="kustomization.yaml"}
 K8S_HELM_KUSTOMZIER_BUILD_FLAGS=${K8S_HELM_KUSTOMZIER_BUILD_FLAGS:=""}
@@ -32,6 +33,18 @@ K8S_HELM_KUSTOMIZE_NAMESUFFIX=${K8S_HELM_KUSTOMIZE_NAMESUFFIX:=""}
 K8S_HELM_KUSTOMIZE_NAMEPREFIX=${K8S_HELM_KUSTOMIZE_NAMEPREFIX:=""}
 
 K8S_HELM_ENVTPL_DIR=${K8S_HELM_ENVTPL_DIR:=""}
+K8S_HELM_ENVTPL_DIR_DEFAULT=${K8S_HELM_ENVTPL_DIR_DEFAULT:=""}
+
+# Fallback to default folder in case folder entry is missing/not set
+if [ ! -d "$K8S_HELM_KUSTOMIZER_DIR" ]; then
+  stdLogInfo "Original Kustomizer dir $K8S_HELM_KUSTOMIZER_DIR is NOT found. Trying to use default directory for Kustomize - $K8S_HELM_KUSTOMIZER_DIR_DEFAULT"
+  K8S_HELM_KUSTOMIZER_DIR=$K8S_HELM_KUSTOMIZER_DIR_DEFAULT
+fi
+
+if [ ! -d "$K8S_HELM_ENVTPL_DIR" ]; then
+  stdLogInfo "Original envtpl dir $K8S_HELM_ENVTPL_DIR is NOT found. Trying to use default directory for envtpl - $K8S_HELM_ENVTPL_DIR_DEFAULT"
+  K8S_HELM_ENVTPL_DIR=$K8S_HELM_ENVTPL_DIR_DEFAULT
+fi
 
 . $SCRIPTS_DIR/std/utils.sh
 . $SCRIPTS_DIR/k8s/state.sh
@@ -461,6 +474,11 @@ function __k8sHelmKustomizeDeploy() {
     stdDebugSmallSeparator
     stdLogDebug "Final helm file content:\n$(cat $helmCustomizeFile)"
     stdDebugSmallSeparator
+  fi
+
+  if [ ! -s "$helmCustomizeFile" ]; then
+    stdLogErr "Detected that final helm file has zero size, making it an empty release. Aborting."
+    return 1
   fi
 
   #Step 3
